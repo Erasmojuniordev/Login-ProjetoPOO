@@ -5,93 +5,114 @@ from classes.docente import Docente
 from persistencia.repositorio_json import RepositorioJSON
 from sistema.sistemaCadastro import SistemaCadastro
 
-# cria sistema
 repo = RepositorioJSON()
 sistema = SistemaCadastro(repo)
 
+## PADRONIZAÇÃO DE ESTILOS ##
+PAGE = "bg-gray-100 min-h-screen flex items-center justify-center p-6"
+CARD = "bg-white w-full max-w-xl rounded-xl shadow-lg p-8"
+TITLE = "text-2xl font-bold mb-6"
+LABEL = "text-sm font-semibold mt-4"
+INPUT = "w-full mt-2 p-2 border rounded focus:outline-none focus:ring"
+BTN = "w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded"
+MSG_OK = "mt-4 text-green-700 font-semibold"
+MSG_ERR = "mt-4 text-red-700 font-semibold"
+
 
 def pagina_cadastro():
-
     wp = jp.WebPage()
-    jp.H1(text="Cadastro de Usuário", a=wp)
+    root = jp.Div(classes=PAGE, a=wp)
+    card = jp.Div(classes=CARD, a=root)
 
-    # CAMPOS
-    jp.Div(text="Nome:", a=wp)
-    nome = jp.Input(a=wp)
+    jp.Div(text="Cadastro de Usuário", classes=TITLE, a=card)
 
-    jp.Div(text="CPF:", a=wp)
-    cpf = jp.Input(a=wp)
+    ## PADRONIZAÇÃO DA CRIAÇÃO DE CAMPOS ##
+    def campo(texto_label, placeholder="", tipo="text"):
+        jp.Div(text=texto_label, classes=LABEL, a=card)
+        return jp.Input(placeholder=placeholder, type=tipo, classes=INPUT, a=card)
+    
+    def campo_select(texto_label):
+        jp.Div(text=texto_label, classes=LABEL, a=card)
+        return jp.Select(classes=INPUT, a=card)
+    
+    def add_options(valor, rota):
+        jp.Option(value=valor, text=valor, a=rota)
 
-    jp.Div(text="Matrícula:", a=wp)
-    matricula = jp.Input(a=wp)
+    ## INPUTS BASICOS ##
+    nome = campo("Nome", "Digite seu nome completo")
 
-    jp.Div(text="Nascimento:", a=wp)
-    nascimento = jp.Input(a=wp)
+    cpf = campo("CPF", "Somente números (ex: 12345678900)")
+    matricula = campo("Matrícula", "Ex: 20251234")
+    nascimento = campo("Nascimento", tipo="date")
+    email = campo("Email", "ex: seuemail@gmail.com", tipo="email")
+    senha = campo("Senha", "mín. 6 caracteres", tipo="password")
+    confirmar = campo("Confirmar senha", "", tipo="password")
 
-    jp.Div(text="Email:", a=wp)
-    email = jp.Input(a=wp)
+    ## INPUT SELECT ##
+    select = campo_select("Tipo de usuário")
+    add_options("Discente", select)
+    add_options("Docente", select)
 
-    jp.Div(text="Senha:", a=wp)
-    senha = jp.Input(type="password", a=wp)
+    label_extra = jp.Div(text="Curso (discente)", classes=LABEL, a=card)
+    extra = jp.Input(placeholder="Ex: Sistemas de Informação", classes=INPUT, a=card)
 
-    jp.Div(text="Confirmar senha:", a=wp)
-    confirmar = jp.Input(type="password", a=wp)
+    mensagem = jp.Div(a=card)
 
-    # tipo usuário
-    jp.Div(text="Tipo de usuário:", a=wp)
-    tipo = jp.Select(a=wp)
-    jp.Option(value="discente", text="Discente", a=tipo)
-    jp.Option(value="docente", text="Docente", a=tipo)
+    def atualizar_extra(self, msg):
+        if select.value == "Discente":
+            label_extra.text = "Curso (discente)"
+            extra.placeholder = "Ex: Sistemas de Informação"
+        else:
+            label_extra.text = "Departamento (docente)"
+            extra.placeholder = "Ex: Computação"
 
-    # campo extra
-    label_extra = jp.Div(text="Curso (discente) ou Departamento (docente):", a=wp)
-    extra = jp.Input(a=wp)
+    ## CASO SELECT SEJA MODIFICADO, ELE RODA A FUNÇÃO DE ATUALIZAR ##
+    select.on("change", atualizar_extra)
 
-    # mensagem resultado
-    mensagem = jp.Div(a=wp)
+    def limpar():
+        nome.value = ""
+        cpf.value = ""
+        matricula.value = ""
+        nascimento.value = ""
+        email.value = ""
+        senha.value = ""
+        confirmar.value = ""
+        extra.value = ""
 
-    # FUNÇÃO DO BOTÃO
     def cadastrar(self, msg):
-
         try:
-            senha_digitada = senha.value
-            confirmar_digitada = confirmar.value
+            ## VERIFICAÇÕES BÁSICAS ##
+            if not nome.value or not email.value or not senha.value:
+                raise ValueError("Preencha ao menos Nome, Email e Senha.")
 
-            # cria objeto correto
-            if tipo.value == "discente":
+            if senha.value != confirmar.value:
+                raise ValueError("As senhas não conferem.")
+
+            if select.value == "Discente":
                 usuario = Discente(
-                    nome.value,
-                    cpf.value,
-                    matricula.value,
-                    nascimento.value,
-                    email.value,
-                    senha_digitada,
-                    extra.value
+                    nome.value, cpf.value, matricula.value, nascimento.value,
+                    email.value, senha.value, extra.value
                 )
             else:
                 usuario = Docente(
-                    nome.value,
-                    cpf.value,
-                    matricula.value,
-                    nascimento.value,
-                    email.value,
-                    senha_digitada,
-                    extra.value
+                    nome.value, cpf.value, matricula.value, nascimento.value,
+                    email.value, senha.value, extra.value
                 )
 
-            # cadastra no sistema
-            sistema.cadastrar(usuario, senha_digitada, confirmar_digitada)
+            sistema.cadastrar(usuario, senha.value, confirmar.value)
 
             mensagem.text = "Cadastro realizado com sucesso!"
-            mensagem.style = "color: green"
+            mensagem.classes = MSG_OK
+            limpar()
 
         except Exception as erro:
             mensagem.text = str(erro)
-            mensagem.style = "color: red"
+            mensagem.classes = MSG_ERR
 
-    jp.Br(a=wp)
-    jp.Button(text="Cadastrar", a=wp, click=cadastrar)
+    btn = jp.Button(text="Cadastrar", classes=BTN, a=card)
+    btn.on("click", cadastrar)
 
+    atualizar_extra(None, None)
     return wp
 
 
