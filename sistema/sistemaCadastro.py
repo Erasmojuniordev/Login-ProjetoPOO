@@ -1,4 +1,4 @@
-from utilidades.validadores import validar_senha
+from utilidades.validadores import validar_senha, validar_cpf
 
 class SistemaCadastro:
     
@@ -12,6 +12,9 @@ class SistemaCadastro:
 
         if not validar_senha(senha):
             raise ValueError("Senha fraca")
+        
+        if not validar_cpf(usuario.getCpf()):
+            raise ValueError("CPF inválido")
         
         if self.__repositorio.buscar_por_cpf(usuario.getCpf()):
             raise ValueError("CPF já cadastrado")

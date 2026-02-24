@@ -15,3 +15,24 @@ def validar_senha(senha):
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", senha):
             return False
         return True
+
+def validar_cpf(cpf):
+    if not cpf:
+        return False
+    cpf = re.sub(r"\D", "", cpf)
+    if len(cpf) != 11:
+        return False
+    if cpf == cpf[0] * 11:
+        return False
+
+    def _calc_digit(slice_cpf, factor):
+        total = 0
+        for ch in slice_cpf:
+            total += int(ch) * factor
+            factor -= 1
+        r = total % 11
+        return '0' if r < 2 else str(11 - r)
+
+    d1 = _calc_digit(cpf[:9], 10)
+    d2 = _calc_digit((cpf[:9] + d1), 11)
+    return cpf[9] == d1 and cpf[10] == d2
