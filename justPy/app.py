@@ -1,9 +1,11 @@
 import justpy as jp
+import re
 
 from classes.discente import Discente
 from classes.docente import Docente
 from persistencia.repositorio_json import RepositorioJSON
 from sistema.sistemaCadastro import SistemaCadastro
+from utilidades.validadores import validar_apenas_numeros, validar_apenas_texto
 
 repo = RepositorioJSON()
 sistema = SistemaCadastro(repo)
@@ -31,6 +33,12 @@ def pagina_cadastro():
         jp.Div(text=texto_label, classes=LABEL, a=card)
         return jp.Input(placeholder=placeholder, type=tipo, classes=INPUT, a=card)
     
+    def validar_input_numeros(self, msg):
+        self.value = re.sub(r"\D", "", self.value)
+    
+    def validar_input_texto(self, msg):
+        self.value = re.sub(r"[^a-zA-ZáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ\s]", "", self.value)
+    
     def campo_select(texto_label):
         jp.Div(text=texto_label, classes=LABEL, a=card)
         return jp.Select(classes=INPUT, a=card)
@@ -40,9 +48,14 @@ def pagina_cadastro():
 
     ## INPUTS BASICOS ##
     nome = campo("Nome", "Digite seu nome completo")
+    nome.on("input", validar_input_texto)
 
     cpf = campo("CPF", "Somente números (ex: 12345678900)")
+    cpf.on("input", validar_input_numeros)
+
     matricula = campo("Matrícula", "Ex: 20251234")
+    matricula.on("input", validar_input_numeros)
+
     nascimento = campo("Nascimento", tipo="date")
     email = campo("Email", "ex: seuemail@gmail.com", tipo="email")
     senha = campo("Senha", "mín. 6 caracteres", tipo="password")
@@ -55,6 +68,7 @@ def pagina_cadastro():
 
     label_extra = jp.Div(text="Curso (discente)", classes=LABEL, a=card)
     extra = jp.Input(placeholder="Ex: Sistemas de Informação", classes=INPUT, a=card)
+    extra.on("input", validar_input_texto)
 
     mensagem = jp.Div(a=card)
 

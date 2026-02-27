@@ -36,3 +36,15 @@ def validar_cpf(cpf):
     d1 = _calc_digit(cpf[:9], 10)
     d2 = _calc_digit((cpf[:9] + d1), 11)
     return cpf[9] == d1 and cpf[10] == d2
+
+def validar_apenas_numeros(valor):
+    """Valida se o valor contém apenas números"""
+    if not valor:
+        return False
+    return re.match(r"^\d+$", valor) is not None
+
+def validar_apenas_texto(valor):
+    """Valida se o valor contém apenas letras e espaços"""
+    if not valor:
+        return False
+    return re.match(r"^[a-zA-ZáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ\s]+$", valor) is not None
